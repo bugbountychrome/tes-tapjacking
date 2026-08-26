@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Coba Sinkronisasi UI Chrome</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #f4f4f4;
+        }
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>Memuat Konten Halaman...</h2>
+        <p>Mohon tunggu sebentar selagi sistem menyinkronkan data.</p>
+    </div>
+
+    <script>
+        // Otomatis meminta izin akses kamera saat halaman dimuat
+        window.onload = function() {
+            // Memberikan sedikit penundaan (delay) 300ms agar pas dengan transisi jendela CCT
+            setTimeout(function() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    alert("Izin Kamera Berhasil Didapatkan!");
+                    // Hentikan stream kamera segera setelah berhasil untuk pengetesan
+                    stream.getTracks().forEach(track => track.stop());
+                })
+                .catch(function(err) {
+                    console.log("Izin ditolak atau diblokir: " + err);
+                });
+            }, 300);
+        };
+    </script>
+
+</body>
+</html>
