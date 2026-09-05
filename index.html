@@ -2,78 +2,70 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Layer Test Android</title>
+<title>Native alert vs Fake overlay — Android</title>
 <style>
-  *{margin:0;box-sizing:border-box}
-  body{font-family:sans-serif}
-  .pad{padding:20px;color:#5f6368}
-  h1{font-size:1.2rem;color:#202124;margin-bottom:8px}
-  .note{font-size:.8rem}
+  *{margin:0;box-sizing:border-box;font-family:sans-serif}
+  .pad{padding:24px;color:#5f6368}
+  h1{font-size:1.1rem;color:#202124;margin-bottom:8px}
+  .note{font-size:.8rem;line-height:1.5}
 
-  /* Overlay paling agresif yang bisa dibuat web */
-  #shield{
+  /* Overlay palsu full-screen z-index max */
+  #fake{
     position:fixed; inset:0; z-index:2147483647;
-    background:#000; color:#0f0;
-    display:none; align-items:center; justify-content:center;
-    text-align:center; font-family:monospace; padding:20px;
+    background:rgba(30,30,30,.85);
+    display:flex; align-items:center; justify-content:center; padding:24px;
   }
-  #shield b{font-size:1.1rem;color:#fff}
-  #shield .small{font-size:.75rem;color:#aaa;margin-top:8px}
+  #fake .box{background:#fff;width:100%;max-width:340px;border-radius:14px;
+             padding:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  #fake h2{font-size:1rem;color:#202124;margin-bottom:6px}
+  #fake p{font-size:.85rem;color:#5f6368}
+  #fake .btn{display:inline-block;margin-top:14px;background:#1a73e8;color:#fff;
+             border:none;border-radius:8px;padding:9px 22px;font-size:.9rem}
 </style>
 </head>
 <body>
 
 <div class="pad">
-  <h1>Test: Overlay vs Prompt Asli (Android)</h1>
-  <p class="note">Saat load, kita panggil getUserMedia (prompt asli) lalu segera pasang overlay HITAM full-screen z-index maksimal.<br>
-  <b>Amati: apakah overlay hitam bisa nutup prompt izin Chrome?</b></p>
-  <p class="note" style="margin-top:10px">Hasil yang hampir pasti: prompt native tampil di atas overlay, atau prompt tidak muncul karena butuh tap user dulu.</p>
-  <div style="margin-top:16px">
-    <button id="btn" style="padding:12px 18px;font-size:1rem">Tap utk coba getUserMedia manual</button>
+  <h1>Test: alert() native muncul bareng overlay palsu</h1>
+  <p class="note">
+    Saat load, kita (1) tampilkan <b>overlay palsu</b> full-screen, lalu (2) panggil
+    <b>window.alert() native</b> ~80ms kemudian.<br>
+    <b>Amati:</b> apakah kotak alert native tampil <b>DI ATAS</b> overlay kita?
+    (Jawaban yang diharapkan: ya, karena alert native ada di layer browser, bukan halaman web.)
+  </p>
+  <p class="note" style="margin-top:10px">Abaikan isi pesan alert — kita cuma buktiin posisi layernya.</p>
+</div>
+
+<div id="fake">
+  <div class="box">
+    <h2>Ini OVERLAY PALSU</h2>
+    <p>z-index maksimal, tapi ini masih <b>di dalam halaman web</b>.<br>
+       Kalau kamu lihat kotak alert Chrome di atas layar gelap ini → terbukti native menang.</p>
+    <span class="btn">Tutup</span>
   </div>
 </div>
 
-<div id="shield"><div>
-  <b>OVERLAY KITA TAMPIL<br>(z-index maksimal)</b>
-  <div class="small">Kalau kamu masih lihat prompt izin Chrome<br>di atas teks ini → terbukti prompt native<br>tidak bisa ditutup dari halaman web.</div>
-</div></div>
-
-<div id="log" style="position:fixed;bottom:0;left:0;right:0;background:#222;color:#0f0;font:11px monospace;padding:6px 10px;white-space:pre-wrap;max-height:40vh;overflow:auto"></div>
+<div id="log" style="position:fixed;bottom:0;left:0;right:0;background:#222;color:#0f0;font:11px monospace;padding:6px 10px;white-space:pre-wrap"></div>
 
 <script>
 const $=s=>document.querySelector(s);
-const log=$('#log');
-function l(m){log.textContent+=m+'\n';log.scrollTop=log.scrollHeight}
+const log=document.getElementById('log');
+function l(m){log.textContent+=m+'\n';}
 
-function tryCamera(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    l('✗ getUserMedia TIDAK didukung (butuh HTTPS).');
-    return;
-  }
-  l('→ Memanggil getUserMedia...');
-  navigator.mediaDevices.getUserMedia({video:true})
-    .then(s=>{l('✓ Kamera DIIZINKAN (prompt asli dipilih Allow).');s.getTracks().forEach(t=>t.stop());})
-    .catch(e=>l('✗ Ditolak/diblokir: '+e.name+' — '+(e.message||'')));
-}
-
-/* OTTOMATIS saat load */
 window.addEventListener('load',()=>{
-  l('--- Test otomatis dimulai ---');
-  l('1) Coba getUserMedia auto (tanpa tap).');
-  tryCamera();
-  l('2) Pasang overlay hitam full-screen z-index max...');
-  $('#shield').style.display='flex';
-  l('3) Amati apakah prompt Chrome muncul DI ATAS overlay.');
+  l('1) Overlay palsu dipasang.');
+
+  // tunggu overlay sempat digambar dulu
+  setTimeout(()=>{
+    l('2) Memanggil window.alert() NATIVE...');
+    // alert() blocking: kode setelahnya jalan setelah dialog ditutup
+    window.alert('Ini kotak alert ASLI Chrome — muncul tanpa tap.');
+    l('3) Alert native ditutup user. Cek: apakah tadi menimpa overlay?');
+  },80);
 });
 
-/* Manual via tap (kemungkinan besar ini yg bikin prompt muncul di Android) */
-$('#btn').addEventListener('click',()=>{
-  l('--- Manual trigger via tap ---');
-  $('#shield').style.display='none'; // biar prompt terlihat jelas
-  tryCamera();
-  setTimeout(()=>{l('Overlay dipasang lagi setelah 400ms.');$('#shield').style.display='flex';},400);
-});
+// tombol palsu cuma nutup overlay kita sendiri
+document.querySelector('#fake .btn').onclick=()=>{$('#fake').style.display='none'};
 </script>
 </body>
 </html>
