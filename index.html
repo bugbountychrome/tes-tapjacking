@@ -1,50 +1,182 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uji Coba Sinkronisasi UI Chrome</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            text-align: center;
-            padding: 50px 20px;
-            background-color: #f4f4f4;
-        }
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 { color: #333; }
-        p { color: #666; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Alert / Permission UI Test</title>
+<style>
+  * { box-sizing: border-box; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  body { margin: 0; min-height: 100vh; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; }
+  h1 { font-size: 1.4rem; color: #202124; }
+  p { color: #5f6368; max-width: 560px; text-align: center; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 20px; }
+  button { border: none; border-radius: 8px; padding: 12px 18px; font-size: 1rem; cursor: pointer; color: #fff; }
+  button:nth-child(1) { background:#1a73e8; }  /* kamera asli */
+  button:nth-child(2) { background:#ea4335; }  /* alert palsu */
+  button:nth-child(3) { background:#f9ab00; }  /* prompt palsu */
+  button:nth-child(4) { background:#188038; }  /* notif palsu */
+  #log { margin-top: 24px; width: 100%; max-width: 560px; background:#fff; border:1px solid #dadce0; border-radius:8px; padding:12px; min-height:80px; font-size:.85rem; }
+  .cam-on { box-shadow: 0 0 0 3px #34a853 inset; }
+  video { display:none; margin-top:20px; width:320px; border-radius:12px; }
+</style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>Memuat Konten Halaman...</h2>
-        <p>Mohon tunggu sebentar selagi sistem menyinkronkan data.</p>
-    </div>
+<h1>UI Alert &amp; Permission Test</h1>
+<p>Membandingkan dialog izin <b>asli</b> Chrome vs elemen <b>tiruan</b>. Perhatikan visual, letak tombol, dan interaksi.</p>
 
-    <script>
-        // Otomatis meminta izin akses kamera saat halaman dimuat
-        window.onload = function() {
-            // Memberikan sedikit penundaan (delay) 300ms agar pas dengan transisi jendela CCT
-            setTimeout(function() {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    alert("Izin Kamera Berhasil Didapatkan!");
-                    // Hentikan stream kamera segera setelah berhasil untuk pengetesan
-                    stream.getTracks().forEach(track => track.stop());
-                })
-                .catch(function(err) {
-                    console.log("Izin ditolak atau diblokir: " + err);
-                });
-            }, 300);
-        };
-    </script>
+<div class="grid">
+  <button id="btnCam">Minta Izin Kamera (ASLI)</button>
+  <button id="btnAlert">Alert Palsu (bawaan?)</button>
+  <button id="btnPrompt">Prompt Palsu</button>
+  <button id="btnNotif">Notifikasi Palsu</button>
+</div>
 
+<video id="cam" autoplay playsinline></video>
+<div id="log"><i>Log akan tampil di sini...</i></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const logEl = $('#log');
+
+function log(msg) {
+  const line = document.createElement('div');
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logEl.prepend(line);
+}
+
+/* ==== 1. PERMINTAAN IZIN KAMERA ASLI (harus HTTPS atau localhost) ==== */
+$('#btnCam').addEventListener('click', async () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    log('⚠ getUserMedia tidak didukung di konteks ini (butuh HTTPS/localhost).');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const cam = $('#cam');
+    cam.srcObject = stream;
+    cam.style.display = 'block';
+    document.body.classList.add('cam-on');
+    log('✅ Izin kamera DIBERIKAN (dialog asli muncul di kiri-atas browser).');
+  } catch (e) {
+    log(`🚫 Izin ditolak / error: ${e.name} — ${e.message}`);
+  }
+});
+
+/* ==== 2. ALERT PALSU (meniru dialog native alert) ==== */
+$('#btnAlert').addEventListener('click', () => {
+  showFakeBox({
+    type: 'alert',
+    title: 'alert — Halaman web',
+    msg: 'Ini adalah ALERT PALSU. Kamu tidak akan melihat badge kunci/ikon situs di kiri-atas jendela browser.',
+    buttons: [{ label: 'OK', value: 'ok' }]
+  });
+});
+
+/* ==== 3. PROMPT PALSU (meniru dialog konfirmasi/prompt) ==== */
+$('#btnPrompt').addEventListener('click', () => {
+  showFakeBox({
+    type: 'confirm',
+    title: 'Konfirmasi',
+    msg: 'Ini meniru dialog konfirmasi. Dialog asli adalah kotak DIALOG BROWSER yang tidak bisa di-palingkan dari tengah-tengah layar.',
+    buttons: [
+      { label: 'Batal', value: false },
+      { label: 'OK', value: true }
+    ]
+  });
+});
+
+/* ==== 4. NOTIFIKASI PALSU (meniru toast notifikasi OS/browser) ==== */
+$('#btnNotif').addEventListener('click', () => {
+  showToast('Notifikasi palsu menyerupai toast sistem.');
+});
+
+/* ---------- Implementasi UI tiruan ---------- */
+
+function makeOverlay() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:9999;
+    display:flex; align-items:flex-start; justify-content:center; padding-top:15vh;
+  `;
+  return overlay;
+}
+
+function showFakeBox({ title, msg, buttons }) {
+  const overlay = makeOverlay();
+
+  const box = document.createElement('div');
+  box.style.cssText = `
+    background:#fff; width:340px; border-radius:10px; box-shadow:0 20px 50px rgba(0,0,0,.4);
+    font:400 14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; color:#202124;
+    user-select:none;
+  `;
+
+  const head = document.createElement('div');
+  head.textContent = title;
+  head.style.cssText = `
+    padding:10px 16px; font-size:12px; color:#5f6368;
+    border-bottom:1px solid #eee; display:flex; align-items:center; gap:6px;
+  `;
+  head.innerHTML = '⚠️ <span style="font-weight:500">Halaman web menampilkan dialog</span>';
+
+  const body = document.createElement('div');
+  body.textContent = msg;
+  body.style.cssText = 'padding:16px;';
+
+  const foot = document.createElement('div');
+  foot.style.cssText = 'padding:10px 16px; display:flex; justify-content:flex-end; gap:8px;';
+
+  buttons.forEach((b, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    btn.style.cssText = `
+      min-width:64px; padding:7px 16px; border-radius:6px; border:1px solid #dadce0;
+      background:${i === buttons.length - 1 ? '#1a73e8' : '#fff'};
+      color:${i === buttons.length - 1 ? '#fff' : '#1a73e8'};
+      cursor:pointer; font-size:13px; font-weight:500;
+    `;
+    btn.addEventListener('click', () => {
+      overlay.remove();
+      log(`Fake box "${title}" ditutup → nilai: ${b.value}`);
+    });
+    foot.appendChild(btn);
+  });
+
+  box.appendChild(head);
+  box.appendChild(body);
+  box.appendChild(foot);
+
+  // tutup kalau klik area gelap
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position:fixed; top:20px; right:20px; z-index:10000; background:#323232; color:#fff;
+    padding:12px 18px; border-radius:8px; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,.3);
+    display:flex; align-items:center; gap:10px; max-width:300px;
+  `;
+  const close = document.createElement('span');
+  close.textContent = '✕';
+  close.style.cssText = 'cursor:pointer; opacity:.7; margin-left:auto;';
+  close.onclick = () => toast.remove();
+  toast.textContent = '🔔 ' + msg;
+  toast.appendChild(close);
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 6000);
+}
+
+/* Esc untuk menutup semua elemen tiruan */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('div[style*="z-index:9999"], div[style*="z-index:10000"]')
+      .forEach(el => el.remove());
+  }
+});
+</script>
 </body>
 </html>
