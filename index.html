@@ -3,258 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Overlay vs Chrome Permission</title>
+<title>Layer Test Android</title>
 <style>
-  * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background:#eef1f5;
-         font-family: -apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
-  .info { padding: 40px 20px; text-align: center; color:#5f6368; font-size:.95rem; }
-  .info h1 { font-size:1.3rem; color:#202124; }
-  .info code { background:#e8eaed; padding:2px 6px; border-radius:4px; }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:sans-serif}
+  .pad{padding:20px;color:#5f6368}
+  h1{font-size:1.2rem;color:#202124;margin-bottom:8px}
+  .note{font-size:.8rem}
 
-  /* Overlay utama menutupi SELURUH layar, termasuk pojok kiri-atas
-     tempat prompt izin Chrome biasanya muncul. */
-  #shield {
-    position: fixed; inset: 0; z-index: 2147483647;
-    background: rgba(255,255,255,0.94);
-    display: none; flex-direction: column; align-items:center; justify-content:center;
-    backdrop-filter: blur(2px);
+  /* Overlay paling agresif yang bisa dibuat web */
+  #shield{
+    position:fixed; inset:0; z-index:2147483647;
+    background:#000; color:#0f0;
+    display:none; align-items:center; justify-content:center;
+    text-align:center; font-family:monospace; padding:20px;
   }
-
-  /* Kotak tiruan bergaya seperti banner izin Chrome / dialog web */
-  #fake {
-    background:#fff; width:420px; border:1px solid #dadce0; border-radius:12px;
-    box-shadow:0 24px 60px rgba(0,0,0,.35);
-    padding:18px 20px; text-align:left;
-    font-size:14px; line-height:1.5; color:#202124;
-  }
-  #fake .row { display:flex; align-items:flex-start; gap:12px; }
-  #fake .icon { width:38px; height:38px; border-radius:50%; background:#f1f3f4;
-                display:flex; align-items:center; justify-content:center; font-size:20px; flex:none; }
-  #fake h3 { margin:0 0 4px; font-size:15px; }
-  #fake p { margin:0; color:#5f6368; }
-  #fake .acts { margin-top:16px; display:flex; justify-content:flex-end; gap:8px; }
-  #fake .acts button { border:none; border-radius:8px; padding:9px 18px; font-size:14px; cursor:pointer; }
-  #fake .acts .cancel { background:#fff; color:#1a73e8; border:1px solid #dadce0; }
-  #fake .acts .allow  { background:#1a73e8; color:#fff; }
-
-  .status { position:fixed; bottom:12px; left:12px; z-index:9; background:#000000cc;
-            color:#fff; font:12px/1.4 monospace; padding:10px 12px; border-radius:8px;
-            max-width:480px; white-space:pre-wrap; }
+  #shield b{font-size:1.1rem;color:#fff}
+  #shield .small{font-size:.75rem;color:#aaa;margin-top:8px}
 </style>
 </head>
 <body>
 
-<div class="info">
-  <h1>Auto Test: Cover Prompt Chrome</h1>
-  <p>Saat halaman terbuka, <b>langsung</b> memicu <code>getUserMedia</code> (prompt asli Chrome muncul di kiri-atas)
-  <b>dan</b> menampilkan <code>#shield</code> full-screen yang menutupi area tsb.<br>
-  Periksa: <b>prompt asli tertutup alert palsu kita atau tidak?</b></p>
-</div>
-
-<!-- Overlay palsu (dimunculkan otomatis) -->
-<div id="shield">
-  <div id="fake">
-    <div class="row">
-      <div class="icon">📷</div>
-      <div>
-        <h3>Izinkan akses kamera?</h3>
-        <p>situs-percobaan.com ingin menggunakan kamera Anda.<br>
-           <span style="font-size:12px;color:#80868b">Klik "Izinkan" untuk melanjutkan.</span></p>
-      </div>
-    </div>
-    <div class="acts">
-      <button class="cancel" id="btnBlock">Blokir</button>
-      <button class="allow" id="btnAllow">Izinkan</button>
-    </div>
+<div class="pad">
+  <h1>Test: Overlay vs Prompt Asli (Android)</h1>
+  <p class="note">Saat load, kita panggil getUserMedia (prompt asli) lalu segera pasang overlay HITAM full-screen z-index maksimal.<br>
+  <b>Amati: apakah overlay hitam bisa nutup prompt izin Chrome?</b></p>
+  <p class="note" style="margin-top:10px">Hasil yang hampir pasti: prompt native tampil di atas overlay, atau prompt tidak muncul karena butuh tap user dulu.</p>
+  <div style="margin-top:16px">
+    <button id="btn" style="padding:12px 18px;font-size:1rem">Tap utk coba getUserMedia manual</button>
   </div>
 </div>
 
-<div class="status" id="log"></div>
+<div id="shield"><div>
+  <b>OVERLAY KITA TAMPIL<br>(z-index maksimal)</b>
+  <div class="small">Kalau kamu masih lihat prompt izin Chrome<br>di atas teks ini → terbukti prompt native<br>tidak bisa ditutup dari halaman web.</div>
+</div></div>
+
+<div id="log" style="position:fixed;bottom:0;left:0;right:0;background:#222;color:#0f0;font:11px monospace;padding:6px 10px;white-space:pre-wrap;max-height:40vh;overflow:auto"></div>
 
 <script>
-const $ = (s)=>document.querySelector(s);
-const logEl = $('#log');
-function log(m){ logEl.textContent += m + '\n'; }
+const $=s=>document.querySelector(s);
+const log=$('#log');
+function l(m){log.textContent+=m+'\n';log.scrollTop=log.scrollHeight}
 
-function fireRealPermission(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    log('getUserMedia tidak didukung (butuh HTTPS/localhost).');
+function tryCamera(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    l('✗ getUserMedia TIDAK didukung (butuh HTTPS).');
     return;
   }
-  navigator.mediaDevices.getUserMedia({video:true}).then((stream)=>{
-    log('✓ Izin kamera asli DIBERIKAN. Prompt asli ditutup user (allow).');
-    stream.getTracks().forEach(t=>t.stop());
-  }).catch((e)=>{
-    log(`✗ Izin kamera ditolak: ${e.name} (${e.message})`);
-  });
+  l('→ Memanggil getUserMedia...');
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(s=>{l('✓ Kamera DIIZINKAN (prompt asli dipilih Allow).');s.getTracks().forEach(t=>t.stop());})
+    .catch(e=>l('✗ Ditolak/diblokir: '+e.name+' — '+(e.message||'')));
 }
 
-function showShieldNow(){
-  $('#shield').style.display = 'flex';
-}
-
-/* ===== OTOMATIS: jalankan semua begitu halaman siap ===== */
-window.addEventListener('load', ()=>{
-  // 1) panggil prompt asli Chrome
-  fireRealPermission();
-
-  // 2) besarkan selisih: tampilkan overlay beberapa ms kemudian
-  setTimeout(showShieldNow, 60);
-  setTimeout(()=>log('Overlay palsu tampil penuh. Prompt Chrome di area kiri-atas?'), 200);
-
-  // catatan: lokasi prompt asli bergantung versi Chrome — paling sering kiri-atas.
-  // Prompt izin hanya muncul di atas konten web bila halaman disajikan
-  // secure context (HTTPS / localhost).
+/* OTTOMATIS saat load */
+window.addEventListener('load',()=>{
+  l('--- Test otomatis dimulai ---');
+  l('1) Coba getUserMedia auto (tanpa tap).');
+  tryCamera();
+  l('2) Pasang overlay hitam full-screen z-index max...');
+  $('#shield').style.display='flex';
+  l('3) Amati apakah prompt Chrome muncul DI ATAS overlay.');
 });
 
-/* Tombol palsu hanya menutup overlay kita (bukan prompt asli Chrome) */
-$('#btnBlock').addEventListener('click', ()=>{ log('Tombol Blokir PALSU diklik (prompt asli tidak terpengaruh).'); $('#shield').style.display='none'; });
-$('#btnAllow').addEventListener('click', ()=>{ log('Tombol Izinkan PALSU diklik (prompt asli tidak terpengaruhi).'); $('#shield').style.display='none'; });
-</script>
-</body>
-</html>
-<script>
-const $ = (s) => document.querySelector(s);
-const logEl = $('#log');
-
-function log(msg) {
-  const line = document.createElement('div');
-  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-  logEl.prepend(line);
-}
-
-/* ==== 1. PERMINTAAN IZIN KAMERA ASLI (harus HTTPS atau localhost) ==== */
-$('#btnCam').addEventListener('click', async () => {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    log('⚠ getUserMedia tidak didukung di konteks ini (butuh HTTPS/localhost).');
-    return;
-  }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    const cam = $('#cam');
-    cam.srcObject = stream;
-    cam.style.display = 'block';
-    document.body.classList.add('cam-on');
-    log('✅ Izin kamera DIBERIKAN (dialog asli muncul di kiri-atas browser).');
-  } catch (e) {
-    log(`🚫 Izin ditolak / error: ${e.name} — ${e.message}`);
-  }
-});
-
-/* ==== 2. ALERT PALSU (meniru dialog native alert) ==== */
-$('#btnAlert').addEventListener('click', () => {
-  showFakeBox({
-    type: 'alert',
-    title: 'alert — Halaman web',
-    msg: 'Ini adalah ALERT PALSU. Kamu tidak akan melihat badge kunci/ikon situs di kiri-atas jendela browser.',
-    buttons: [{ label: 'OK', value: 'ok' }]
-  });
-});
-
-/* ==== 3. PROMPT PALSU (meniru dialog konfirmasi/prompt) ==== */
-$('#btnPrompt').addEventListener('click', () => {
-  showFakeBox({
-    type: 'confirm',
-    title: 'Konfirmasi',
-    msg: 'Ini meniru dialog konfirmasi. Dialog asli adalah kotak DIALOG BROWSER yang tidak bisa di-palingkan dari tengah-tengah layar.',
-    buttons: [
-      { label: 'Batal', value: false },
-      { label: 'OK', value: true }
-    ]
-  });
-});
-
-/* ==== 4. NOTIFIKASI PALSU (meniru toast notifikasi OS/browser) ==== */
-$('#btnNotif').addEventListener('click', () => {
-  showToast('Notifikasi palsu menyerupai toast sistem.');
-});
-
-/* ---------- Implementasi UI tiruan ---------- */
-
-function makeOverlay() {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:9999;
-    display:flex; align-items:flex-start; justify-content:center; padding-top:15vh;
-  `;
-  return overlay;
-}
-
-function showFakeBox({ title, msg, buttons }) {
-  const overlay = makeOverlay();
-
-  const box = document.createElement('div');
-  box.style.cssText = `
-    background:#fff; width:340px; border-radius:10px; box-shadow:0 20px 50px rgba(0,0,0,.4);
-    font:400 14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; color:#202124;
-    user-select:none;
-  `;
-
-  const head = document.createElement('div');
-  head.textContent = title;
-  head.style.cssText = `
-    padding:10px 16px; font-size:12px; color:#5f6368;
-    border-bottom:1px solid #eee; display:flex; align-items:center; gap:6px;
-  `;
-  head.innerHTML = '⚠️ <span style="font-weight:500">Halaman web menampilkan dialog</span>';
-
-  const body = document.createElement('div');
-  body.textContent = msg;
-  body.style.cssText = 'padding:16px;';
-
-  const foot = document.createElement('div');
-  foot.style.cssText = 'padding:10px 16px; display:flex; justify-content:flex-end; gap:8px;';
-
-  buttons.forEach((b, i) => {
-    const btn = document.createElement('button');
-    btn.textContent = b.label;
-    btn.style.cssText = `
-      min-width:64px; padding:7px 16px; border-radius:6px; border:1px solid #dadce0;
-      background:${i === buttons.length - 1 ? '#1a73e8' : '#fff'};
-      color:${i === buttons.length - 1 ? '#fff' : '#1a73e8'};
-      cursor:pointer; font-size:13px; font-weight:500;
-    `;
-    btn.addEventListener('click', () => {
-      overlay.remove();
-      log(`Fake box "${title}" ditutup → nilai: ${b.value}`);
-    });
-    foot.appendChild(btn);
-  });
-
-  box.appendChild(head);
-  box.appendChild(body);
-  box.appendChild(foot);
-
-  // tutup kalau klik area gelap
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-}
-
-function showToast(msg) {
-  const toast = document.createElement('div');
-  toast.style.cssText = `
-    position:fixed; top:20px; right:20px; z-index:10000; background:#323232; color:#fff;
-    padding:12px 18px; border-radius:8px; font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,.3);
-    display:flex; align-items:center; gap:10px; max-width:300px;
-  `;
-  const close = document.createElement('span');
-  close.textContent = '✕';
-  close.style.cssText = 'cursor:pointer; opacity:.7; margin-left:auto;';
-  close.onclick = () => toast.remove();
-  toast.textContent = '🔔 ' + msg;
-  toast.appendChild(close);
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 6000);
-}
-
-/* Esc untuk menutup semua elemen tiruan */
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('div[style*="z-index:9999"], div[style*="z-index:10000"]')
-      .forEach(el => el.remove());
-  }
+/* Manual via tap (kemungkinan besar ini yg bikin prompt muncul di Android) */
+$('#btn').addEventListener('click',()=>{
+  l('--- Manual trigger via tap ---');
+  $('#shield').style.display='none'; // biar prompt terlihat jelas
+  tryCamera();
+  setTimeout(()=>{l('Overlay dipasang lagi setelah 400ms.');$('#shield').style.display='flex';},400);
 });
 </script>
 </body>
