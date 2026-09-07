@@ -2,119 +2,116 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Pengujian Eksperimen Tumpang Tindih DOM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Lintas Peramban: Manipulasi Lapisan DOM</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 30px;
+            background-color: #f5f5f5;
         }
-        /* Tombol sensitif di halaman latar belakang */
-        .tombol-sensitif {
-            padding: 12px 24px;
+
+        /* Elemen Target Utama di Latar Belakang */
+        .area-sensitif {
+            padding: 30px;
+            background-color: #ffcccc;
+            border: 3px dashed #cc0000;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tombol-target {
+            padding: 15px 30px;
             background-color: #d9534f;
             color: white;
             border: none;
-            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
         }
 
-        /* Mengonfigurasi Dialog DOM agar tumpang tindih secara presisi */
-        dialog#overlayUji {
-            width: 300px;
-            padding: 20px;
+        /* Elemen Penguji Tumpang Tindih (Dialog) */
+        dialog#modalUji {
+            width: 80%;
+            max-width: 400px;
+            padding: 25px;
             border: 2px solid #333;
-            border-radius: 8px;
-            /* Memaksa posisi tepat di atas koordinat tombol latar belakang */
-            position: absolute;
-            top: 50px;
-            left: 20px;
-            margin: 0;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            
+            /* TITIK UJI 1: Manipulasi pointer agar klik menembus lapisan */
+            pointer-events: auto; 
         }
 
-        /* Manipulasi lapisan penutup (Backdrop) */
-        dialog#overlayUji::backdrop {
-            /* Membuat latar belakang sedikit buram untuk mengisolasi elemen bawah */
-            background-color: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(2px);
+        /* TITIK UJI 2: Penanganan Backdrop Lintas Mesin */
+        dialog#modalUji::backdrop {
+            /* Menguji apakah mesin peramban mengizinkan transparansi total */
+            background-color: rgba(0, 0, 0, 0.1);
+            
+            /* Menguji dukungan filter blur (Sering bermasalah di WebKit/Safari versi lama) */
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
+        }
+
+        .kontrol-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e2e8f0;
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Simulasi Skenario Tumpang Tindih (DOM Layering)</h2>
-    <p>Di bawah ini terdapat tombol aksi sensitif yang akan ditutupi oleh elemen dialog bawaan DOM saat dipicu.</p>
+    <h2>Laboratorium Uji Tumpang Tindih DOM</h2>
     
-    <!-- Elemen Latar Belakang -->
-    <button class="tombol-sensitif" onclick="alert('Aksi Sensitif Dieksekusi!')">
-        KIRIM DANA / PROSES DATA
-    </button>
-
-    <br><br>
-    <button onclick="pemicuOverlay()">Aktifkan Elemen Tumpang Tindih</button>
-
-    <!-- Elemen Dialog DOM yang Menjadi Target Tumpang Tindih -->
-    <dialog id="overlayUji">
-        <h3>Konfirmasi Lapisan Atas</h3>
-        <p>Elemen ini sengaja dimunculkan tepat di atas area tombol untuk menguji apakah pengguna terhalang melakukan interaksi di latar belakang.</p>
-        <button onclick="tutupOverlay()">Singkirkan Overlay</button>
-    </dialog>
-
-    <script>
-        const dialogBox = document.getElementById('overlayUji');
-
-        function pemicuOverlay() {
-            // Menggunakan showModal agar mengaktifkan fitur lapisan teratas (Top Layer) peramban
-            dialogBox.showModal();
-        }
-
-        function tutupOverlay() {
-            dialogBox.close();
-        }
-    </script>
-
-</body>
-</html>
-
-        function tutupDialog() {
-            // .close() adalah fungsi bawaan untuk menutupnya
-            komponenDialog.close(); 
-        }
-    </script>
-
-</body>
-</html>
-    <p>Klik tombol di bawah untuk memicu permintaan izin kamera dari peramban sekaligus memunculkan komponen dialog dari situs.</p>
-    
-    <button onclick="pemicuBersamaan()">Jalankan Simulasi</button>
-
-    <!-- Komponen Dialog Internal Halaman -->
-    <div id="kotakDialog" class="dialog-internal-situs">
-        <h3>Notifikasi Internal</h3>
-        <p>Ini adalah komponen dialog bawaan dari halaman web. Periksa apakah posisinya menghalangi atau berjalan bersamaan dengan prompt izin kamera bawaan peramban Anda.</p>
-        <button class="tombol-tutup" onclick="tutupDialog()">Tutup</button>
+    <!-- Area Latar Belakang -->
+    <div class="area-sensitif">
+        <p><strong>Konteks Sensitif:</strong> Tombol di bawah ini memicu aksi penting.</p>
+        <button class="tombol-target" onclick="catatKlik()">[ KLIK DI SINI ]</button>
     </div>
 
-    <script>
-        function pemicuBersamaan() {
-            // 1. Memicu izin kamera asli peramban secara asinkronus
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    console.log("Akses kamera disetujui.");
-                    // Hentikan stream setelah tes selesai agar kamera tidak terus menyala
-                    stream.getTracks().forEach(track => track.stop());
-                })
-                .catch(function(err) {
-                    console.log("Akses kamera ditolak/tidak tersedia: " + err.name);
-                });
+    <button onclick="bukaModal()">1. Picu Elemen Tumpang Tindih</button>
 
-            // 2. Memunculkan dialog HTML internal tanpa jeda menggunakan antrean makrotask
-            setTimeout(function() {
-                document.getElementById("kotakDialog").style.display = "block";
-            }, 0); 
+    <!-- Modal Target -->
+    <dialog id="modalUji">
+        <h3>Lapisan Atas Aktif</h3>
+        <p>Periksa apakah peramban Anda mengizinkan klik menembus area transparan di sekitar kotak ini ke tombol merah di belakang.</p>
+        
+        <div class="kontrol-panel">
+            <button onclick="ubahPointerEvents('none')">Set pointer-events: none</button>
+            <button onclick="ubahPointerEvents('auto')">Set pointer-events: auto</button>
+        </div>
+        <br>
+        <button onclick="tutupModal()">2. Tutup Lapisan</button>
+    </dialog>
+
+    <p id="logAksi" style="color: blue; font-weight: bold; margin-top: 20px;"></p>
+
+    <script>
+        const modal = document.getElementById('modalUji');
+        const log = document.getElementById('logAksi');
+
+        function bukaModal() {
+            modal.showModal();
+            log.innerText = "Sistem: Elemen <dialog> terbuka menggunakan .showModal()";
         }
 
-        function tutupDialog() {
-            document.getElementById("kotakDialog").style.display = "none";
+        function tutupModal() {
+            modal.close();
+            log.innerText = "Sistem: Elemen <dialog> ditutup.";
+        }
+
+        function catatKlik() {
+            log.innerText = "AWAS: Tombol latar belakang berhasil diklik! (Click-through Terjadi)";
+            log.style.color = "red";
+        }
+
+        function ubahPointerEvents(nilai) {
+            modal.style.pointerEvents = nilai;
+            log.innerText = `Gaya diubah: pointer-events = ${nilai}`;
         }
     </script>
 
