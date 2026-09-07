@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Simulasi Sinkronisasi Dialog UI</title>
     <style>
-        /* Desain dialog internal halaman (bukan meniru browser) */
-        .dialog-internal-situs {
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 350px;
+        /* Anda bebas mengatur gaya dialog bawaan ini menggunakan CSS */
+        dialog {
+            border: 2px solid #ff4444;
+            border-radius: 10px;
             padding: 20px;
-            background-color: #ffffff;
-            border: 2px solid #333333;
-            border-radius: 8px;
-            box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
-            font-family: Arial, sans-serif;
-            display: none; /* Sembunyikan di awal */
-            z-index: 999999; /* Mengatur agar berada di lapisan teratas DOM */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .tombol-tutup {
-            margin-top: 15px;
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        /* Mengatur latar belakang blur di belakang dialog */
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
         }
     </style>
 </head>
 <body>
 
-    <h2>Pengujian Responsivitas UI Ganda</h2>
+    <button onclick="bukaDialog()">Buka Alert Bawaan DOM</button>
+
+    <!-- Elemen dialog asli bawaan HTML, tetapi berada di dalam DOM -->
+    <dialog id="alertSaya">
+        <h3>Pemberitahuan Sistem</h3>
+        <p>Ini adalah komponen alert bawaan peramban yang berada di dalam DOM.</p>
+        <button onclick="tutupDialog()">Tutup</button>
+    </dialog>
+
+    <script>
+        const komponenDialog = document.getElementById('alertSaya');
+
+        function bukaDialog() {
+            // .showModal() adalah fungsi bawaan browser untuk memunculkan dialog
+            komponenDialog.showModal(); 
+        }
+
+        function tutupDialog() {
+            // .close() adalah fungsi bawaan untuk menutupnya
+            komponenDialog.close(); 
+        }
+    </script>
+
+</body>
+</html>
     <p>Klik tombol di bawah untuk memicu permintaan izin kamera dari peramban sekaligus memunculkan komponen dialog dari situs.</p>
     
     <button onclick="pemicuBersamaan()">Jalankan Simulasi</button>
