@@ -2,28 +2,70 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Pemicu Alert Ganda</title>
+    <title>Simulasi Sinkronisasi Dialog UI</title>
+    <style>
+        /* Desain dialog internal halaman (bukan meniru browser) */
+        .dialog-internal-situs {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 2px solid #333333;
+            border-radius: 8px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            display: none; /* Sembunyikan di awal */
+            z-index: 999999; /* Mengatur agar berada di lapisan teratas DOM */
+        }
+        .tombol-tutup {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-    <h2>Klik tombol di bawah untuk memicu kedua alert secara bersamaan:</h2>
-    <button onclick="pemicuAlertGanda()">Aktifkan Kamera & Alert</button>
+    <h2>Pengujian Responsivitas UI Ganda</h2>
+    <p>Klik tombol di bawah untuk memicu permintaan izin kamera dari peramban sekaligus memunculkan komponen dialog dari situs.</p>
+    
+    <button onclick="pemicuBersamaan()">Jalankan Simulasi</button>
+
+    <!-- Komponen Dialog Internal Halaman -->
+    <div id="kotakDialog" class="dialog-internal-situs">
+        <h3>Notifikasi Internal</h3>
+        <p>Ini adalah komponen dialog bawaan dari halaman web. Periksa apakah posisinya menghalangi atau berjalan bersamaan dengan prompt izin kamera bawaan peramban Anda.</p>
+        <button class="tombol-tutup" onclick="tutupDialog()">Tutup</button>
+    </div>
 
     <script>
-        function pemicuAlertGanda() {
-            // 1. Picu izin kamera terlebih dahulu (Prompt Izin Browser)
+        function pemicuBersamaan() {
+            // 1. Memicu izin kamera asli peramban secara asinkronus
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
-                    console.log("Izin kamera diberikan.");
+                    console.log("Akses kamera disetujui.");
+                    // Hentikan stream setelah tes selesai agar kamera tidak terus menyala
+                    stream.getTracks().forEach(track => track.stop());
                 })
                 .catch(function(err) {
-                    console.log("Izin kamera ditolak atau eror: " + err.name);
+                    console.log("Akses kamera ditolak/tidak tersedia: " + err.name);
                 });
 
-            // 2. Gunakan setTimeout agar alert bawaan muncul tepat setelah prompt kamera keluar
+            // 2. Memunculkan dialog HTML internal tanpa jeda menggunakan antrean makrotask
             setTimeout(function() {
-                alert("Ini adalah alert bawaan Chrome!");
-            }, 50); 
+                document.getElementById("kotakDialog").style.display = "block";
+            }, 0); 
+        }
+
+        function tutupDialog() {
+            document.getElementById("kotakDialog").style.display = "none";
         }
     </script>
 
