@@ -1,39 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <title>Pengujian Eksperimen Tumpang Tindih DOM</title>
     <style>
-        /* Anda bebas mengatur gaya dialog bawaan ini menggunakan CSS */
-        dialog {
-            border: 2px solid #ff4444;
-            border-radius: 10px;
+        body {
+            font-family: Arial, sans-serif;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        /* Mengatur latar belakang blur di belakang dialog */
-        dialog::backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(3px);
+        /* Tombol sensitif di halaman latar belakang */
+        .tombol-sensitif {
+            padding: 12px 24px;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Mengonfigurasi Dialog DOM agar tumpang tindih secara presisi */
+        dialog#overlayUji {
+            width: 300px;
+            padding: 20px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            /* Memaksa posisi tepat di atas koordinat tombol latar belakang */
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            margin: 0;
+        }
+
+        /* Manipulasi lapisan penutup (Backdrop) */
+        dialog#overlayUji::backdrop {
+            /* Membuat latar belakang sedikit buram untuk mengisolasi elemen bawah */
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
         }
     </style>
 </head>
 <body>
 
-    <button onclick="bukaDialog()">Buka Alert Bawaan DOM</button>
+    <h2>Simulasi Skenario Tumpang Tindih (DOM Layering)</h2>
+    <p>Di bawah ini terdapat tombol aksi sensitif yang akan ditutupi oleh elemen dialog bawaan DOM saat dipicu.</p>
+    
+    <!-- Elemen Latar Belakang -->
+    <button class="tombol-sensitif" onclick="alert('Aksi Sensitif Dieksekusi!')">
+        KIRIM DANA / PROSES DATA
+    </button>
 
-    <!-- Elemen dialog asli bawaan HTML, tetapi berada di dalam DOM -->
-    <dialog id="alertSaya">
-        <h3>Pemberitahuan Sistem</h3>
-        <p>Ini adalah komponen alert bawaan peramban yang berada di dalam DOM.</p>
-        <button onclick="tutupDialog()">Tutup</button>
+    <br><br>
+    <button onclick="pemicuOverlay()">Aktifkan Elemen Tumpang Tindih</button>
+
+    <!-- Elemen Dialog DOM yang Menjadi Target Tumpang Tindih -->
+    <dialog id="overlayUji">
+        <h3>Konfirmasi Lapisan Atas</h3>
+        <p>Elemen ini sengaja dimunculkan tepat di atas area tombol untuk menguji apakah pengguna terhalang melakukan interaksi di latar belakang.</p>
+        <button onclick="tutupOverlay()">Singkirkan Overlay</button>
     </dialog>
 
     <script>
-        const komponenDialog = document.getElementById('alertSaya');
+        const dialogBox = document.getElementById('overlayUji');
 
-        function bukaDialog() {
-            // .showModal() adalah fungsi bawaan browser untuk memunculkan dialog
-            komponenDialog.showModal(); 
+        function pemicuOverlay() {
+            // Menggunakan showModal agar mengaktifkan fitur lapisan teratas (Top Layer) peramban
+            dialogBox.showModal();
         }
+
+        function tutupOverlay() {
+            dialogBox.close();
+        }
+    </script>
+
+</body>
+</html>
 
         function tutupDialog() {
             // .close() adalah fungsi bawaan untuk menutupnya
