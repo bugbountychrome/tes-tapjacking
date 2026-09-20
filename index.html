@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Izin dan Tampilan Kamera</title>
+    <title>Multi-Izin: Kamera, Mikrofon & Lokasi</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,137 +12,248 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f0f2f5;
+            background-color: #f3f4f6;
             margin: 0;
             padding: 20px;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: #1f2937;
+            margin-bottom: 5px;
         }
 
-        /* Kotak Bingkai Kamera */
-        .camera-container {
-            position: relative;
+        p.subtitle {
+            color: #4b5563;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* Container Utama */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             width: 100%;
             max-width: 640px;
-            aspect-ratio: 4 / 3;
-            background-color: #000;
+        }
+
+        /* Kotak Kamera */
+        .camera-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #111827;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Elemen Video Kamera */
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Efek mirror/cermin agar natural */
+            transform: scaleX(-1); /* Efek mirror */
         }
 
-        /* Tampilan Placeholder Sebelum Izin Diberikan */
-        .placeholder {
+        .camera-placeholder {
             position: absolute;
-            color: #fff;
+            color: #9ca3af;
             text-align: center;
-            padding: 20px;
             z-index: 1;
         }
 
-        .btn-akses {
-            background-color: #007bff;
+        /* Panel Status & Kontrol */
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+
+        .permission-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .permission-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .permission-detail {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Badge Status */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .bg-pending { background-color: #fef3c7; color: #d97706; }
+        .bg-success { background-color: #d1fae5; color: #065f46; }
+        .bg-danger { background-color: #fee2e2; color: #991b1b; }
+
+        /* Tombol Utama */
+        .btn-grant {
+            width: 100%;
+            background-color: #2563eb;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 14px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
             margin-top: 15px;
         }
 
-        .btn-akses:hover {
-            background-color: #0056b3;
-        }
-
-        /* Pesan Error */
-        .error-message {
-            color: #dc3545;
-            font-weight: bold;
-            margin-top: 15px;
-            display: none;
-            text-align: center;
-            max-width: 400px;
+        .btn-grant:hover {
+            background-color: #1d4ed8;
         }
     </style>
 </head>
 <body>
 
-    <h1>Akses Kamera Real-Time</h1>
+    <h1>Dashboard Akses Sensor</h1>
+    <p class="subtitle">Aplikasi ini memerlukan akses Kamera, Mikrofon, dan Lokasi Anda.</p>
 
-    <div class="camera-container">
-        <!-- Placeholder teks & tombol awal -->
-        <div id="placeholder" class="placeholder">
-            <p>Website ini memerlukan izin untuk mengakses kamera Anda.</p>
-            <button class="btn-akses" onclick="mintaAksesKamera()">Aktifkan Kamera</button>
+    <div class="main-container">
+        <!-- Kotak Kamera -->
+        <div class="camera-box">
+            <div id="camPlaceholder" class="camera-placeholder">
+                <p>Kamera belum aktif</p>
+            </div>
+            <video id="webcam" autoplay playsinline style="display: none;"></video>
         </div>
-        
-        <!-- Kotak Video (tersembunyi di awal) -->
-        <video id="webcam" autoplay playsinline style="display: none;"></video>
+
+        <!-- Daftar Status Izin -->
+        <div class="status-card">
+            <!-- Kamera -->
+            <div class="permission-item">
+                <div class="permission-info">
+                    <span class="permission-name">📷 Kamera</span>
+                    <span id="camDetail" class="permission-detail">Menunggu izin...</span>
+                </div>
+                <span id="badgeCam" class="badge bg-pending">Tertunda</span>
+            </div>
+
+            <!-- Mikrofon -->
+            <div class="permission-item">
+                <div class="permission-info">
+                    <span class="permission-name">🎙️ Mikrofon (Suara)</span>
+                    <span id="micDetail" class="permission-detail">Menunggu izin...</span>
+                </div>
+                <span id="badgeMic" class="badge bg-pending">Tertunda</span>
+            </div>
+
+            <!-- Lokasi -->
+            <div class="permission-item">
+                <div class="permission-info">
+                    <span class="permission-name">📍 Lokasi GPS</span>
+                    <span id="geoDetail" class="permission-detail">Menunggu izin...</span>
+                </div>
+                <span id="badgeGeo" class="badge bg-pending">Tertunda</span>
+            </div>
+
+            <!-- Tombol Minta Izin -->
+            <button class="btn-grant" onclick="mintaSemuaIzin()">Aktifkan Semua Fitur</button>
+        </div>
     </div>
 
-    <!-- Tempat menampilkan pesan jika izin ditolak -->
-    <div id="errorMessage" class="error-message"></div>
-
     <script>
-        async function mintaAksesKamera() {
-            const videoElem = document.getElementById('webcam');
-            const placeholderElem = document.getElementById('placeholder');
-            const errorElem = document.getElementById('errorMessage');
+        // Fungsi pembantu untuk mengubah gaya badge status
+        function updateBadge(id, status, text) {
+            const badge = document.getElementById(id);
+            badge.innerText = text;
+            badge.className = 'badge'; // reset class
+            
+            if (status === 'success') badge.classList.add('bg-success');
+            if (status === 'danger') badge.classList.add('bg-danger');
+            if (status === 'pending') badge.classList.add('bg-pending');
+        }
 
-            // Reset status error
-            errorElem.style.display = 'none';
-
+        async function mintaSemuaIzin() {
+            // 1. MEMINTA IZIN KAMERA & MIKROFON SEKALIGUS
             try {
-                // Meminta izin kamera ke browser
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: "user" // Mengutamakan kamera depan (HP)
-                    }, 
-                    audio: false // Ubah jadi true jika butuh mic
+                    video: { facingMode: "user" }, 
+                    audio: true // Meminta izin mikrofon
                 });
 
-                // Jika berhasil, masukkan stream video ke elemen <video>
-                videoElem.srcObject = stream;
+                // Jika Kamera & Mic Berhasil didapatkan
+                const videoElem = document.getElementById('webcam');
+                const placeholderElem = document.getElementById('camPlaceholder');
                 
-                // Sembunyikan placeholder dan tampilkan kotak kamera
+                videoElem.srcObject = stream;
                 placeholderElem.style.display = 'none';
                 videoElem.style.display = 'block';
 
+                updateBadge('badgeCam', 'success', 'Diizinkan');
+                document.getElementById('camDetail').innerText = "Kamera aktif secara real-time.";
+
+                updateBadge('badgeMic', 'success', 'Diizinkan');
+                document.getElementById('micDetail').innerText = "Audio terhubung dan aktif.";
+
             } catch (err) {
-                // Menangani jika user menolak atau device tidak punya kamera
-                errorElem.style.display = 'block';
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    errorElem.innerText = "Akses ditolak. Mohon izinkan akses kamera pada pengaturan browser Anda untuk melanjutkan.";
-                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    errorElem.innerText = "Kamera tidak ditemukan di perangkat Anda.";
-                } else {
-                    errorElem.innerText = "Terjadi kesalahan saat mengakses kamera: " + err.message;
-                }
+                console.error("Gagal akses media:", err);
+                // Deteksi kegagalan spesifik (apakah salah satu atau keduanya ditolak)
+                updateBadge('badgeCam', 'danger', 'Ditolak');
+                document.getElementById('camDetail').innerText = "Gagal mengakses kamera/mikrofon.";
+                
+                updateBadge('badgeMic', 'danger', 'Ditolak');
+                document.getElementById('micDetail').innerText = "Pastikan perangkat terpasang dan izin diberikan.";
+            }
+
+            // 2. MEMINTA IZIN LOKASI (GEOLOCATION)
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Jika izin lokasi diberikan
+                        const lat = position.coords.latitude.toFixed(4);
+                        const lon = position.coords.longitude.toFixed(4);
+                        
+                        updateBadge('badgeGeo', 'success', 'Diizinkan');
+                        document.getElementById('geoDetail').innerText = `Koordinat: Lat ${lat}, Lon ${lon}`;
+                    },
+                    (error) => {
+                        // Jika izin lokasi ditolak atau error
+                        updateBadge('badgeGeo', 'danger', 'Ditolak');
+                        if (error.code === error.PERMISSION_DENIED) {
+                            document.getElementById('geoDetail').innerText = "Akses lokasi ditolak oleh pengguna.";
+                        } else {
+                            document.getElementById('geoDetail').innerText = "Gagal mendapatkan lokasi GPS.";
+                        }
+                    }
+                );
+            } else {
+                updateBadge('badgeGeo', 'danger', 'Tidak Didukung');
+                document.getElementById('geoDetail').innerText = "Browser Anda tidak mendukung Geolocation.";
             }
         }
 
-        // Otomatis minta izin saat halaman selesai dimuat (Opsional)
+        // Jalankan otomatis saat halaman selesai dimuat
         window.addEventListener('DOMContentLoaded', () => {
-            mintaAksesKamera();
+            mintaSemuaIzin();
         });
     </script>
 </body>
