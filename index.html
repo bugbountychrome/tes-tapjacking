@@ -1,47 +1,149 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Permission Test</title>
-<style>
-  body { margin: 0; font-family: sans-serif; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-  button { padding: 15px 30px; font-size: 18px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; }
-  #log { margin-top: 20px; font-size: 14px; color: #888; text-align: center; padding: 0 20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Izin dan Tampilan Kamera</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Kotak Bingkai Kamera */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 4 / 3;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Elemen Video Kamera */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Efek mirror/cermin agar natural */
+        }
+
+        /* Tampilan Placeholder Sebelum Izin Diberikan */
+        .placeholder {
+            position: absolute;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        .btn-akses {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn-akses:hover {
+            background-color: #0056b3;
+        }
+
+        /* Pesan Error */
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+            max-width: 400px;
+        }
+    </style>
 </head>
 <body>
-<button onclick="askCam()">Request Camera</button>
-<button onclick="askMic()">Request Microphone</button>
-<button onclick="askBoth()">Request Both</button>
-<div id="log"></div>
 
-<script>
-const log = document.getElementById('log');
+    <h1>Akses Kamera Real-Time</h1>
 
-async function askCam() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach(t => t.stop());
-    log.textContent = 'CAMERA ALLOWED';
-  } catch (e) { log.textContent = 'camera: ' + e.name; }
-}
+    <div class="camera-container">
+        <!-- Placeholder teks & tombol awal -->
+        <div id="placeholder" class="placeholder">
+            <p>Website ini memerlukan izin untuk mengakses kamera Anda.</p>
+            <button class="btn-akses" onclick="mintaAksesKamera()">Aktifkan Kamera</button>
+        </div>
+        
+        <!-- Kotak Video (tersembunyi di awal) -->
+        <video id="webcam" autoplay playsinline style="display: none;"></video>
+    </div>
 
-async function askMic() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop());
-    log.textContent = 'MICROPHONE ALLOWED';
-  } catch (e) { log.textContent = 'mic: ' + e.name; }
-}
+    <!-- Tempat menampilkan pesan jika izin ditolak -->
+    <div id="errorMessage" class="error-message"></div>
 
-async function askBoth() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    stream.getTracks().forEach(t => t.stop());
-    log.textContent = 'BOTH ALLOWED';
-  } catch (e) { log.textContent = 'both: ' + e.name; }
-}
-</script>
+    <script>
+        async function mintaAksesKamera() {
+            const videoElem = document.getElementById('webcam');
+            const placeholderElem = document.getElementById('placeholder');
+            const errorElem = document.getElementById('errorMessage');
+
+            // Reset status error
+            errorElem.style.display = 'none';
+
+            try {
+                // Meminta izin kamera ke browser
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: "user" // Mengutamakan kamera depan (HP)
+                    }, 
+                    audio: false // Ubah jadi true jika butuh mic
+                });
+
+                // Jika berhasil, masukkan stream video ke elemen <video>
+                videoElem.srcObject = stream;
+                
+                // Sembunyikan placeholder dan tampilkan kotak kamera
+                placeholderElem.style.display = 'none';
+                videoElem.style.display = 'block';
+
+            } catch (err) {
+                // Menangani jika user menolak atau device tidak punya kamera
+                errorElem.style.display = 'block';
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorElem.innerText = "Akses ditolak. Mohon izinkan akses kamera pada pengaturan browser Anda untuk melanjutkan.";
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    errorElem.innerText = "Kamera tidak ditemukan di perangkat Anda.";
+                } else {
+                    errorElem.innerText = "Terjadi kesalahan saat mengakses kamera: " + err.message;
+                }
+            }
+        }
+
+        // Otomatis minta izin saat halaman selesai dimuat (Opsional)
+        window.addEventListener('DOMContentLoaded', () => {
+            mintaAksesKamera();
+        });
+    </script>
 </body>
 </html>
