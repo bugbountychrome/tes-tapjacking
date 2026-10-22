@@ -1,115 +1,114 @@
+<html>
+<body style="margin:0" onclick="main()">
 
-<html onclick="main()">
-<center>
-<h1>Click to start demo</h1>
+<center id="start">
+    <h1>Click to start PoC</h1>
 </center>
 
 <script>
-let started = false;
+function main() {
+    const pointerLockElement =
+        document.getElementById('pointerLockElement');
+    const fullscreenElement =
+        document.getElementById('fullscreenElement');
 
-async function main() {
-    if (started) return;
-    started = true;
+    fullscreenElement.appendChild(pointerLockElement);
 
-    const div = document.getElementById('pointerLockElement');
+    var div = pointerLockElement;
 
     div.innerHTML = `
+      <div style="
+        min-height:100vh;
+        background:white;
+        font-family:sans-serif;
+        box-sizing:border-box;
+        padding-bottom:110px;">
+
+        <center style="padding-top:40px">
+          <h2>PoC by FARISSAL B</h2>
+          <p>Fullscreen and keyboard test</p>
+
+          <input id="email"
+            type="text"
+            placeholder="Email dummy"
+            autocomplete="off"
+            onclick="event.stopPropagation()"
+            style="width:80%;padding:12px;margin-bottom:15px;
+            border:1px solid #757575;border-radius:4px;
+            box-sizing:border-box;font-size:16px">
+
+          <br>
+
+          <input id="password"
+            type="password"
+            placeholder="Sandi dummy"
+            autocomplete="off"
+            onclick="event.stopPropagation()"
+            style="width:80%;padding:12px;margin-bottom:20px;
+            border:1px solid #757575;border-radius:4px;
+            box-sizing:border-box;font-size:16px">
+
+          <br>
+
+          <button type="button"
+            onclick="event.stopPropagation(); alert('PoC test')"
+            style="width:80%;padding:12px;background:#1a73e8;
+            color:white;border:0;border-radius:4px;font-size:16px">
+            Test Alert
+          </button>
+        </center>
+
         <div style="
-            min-height:100vh;
-            background:#fff;
+          position:fixed;
+          bottom:0;
+          left:0;
+          width:100%;
+          padding:12px 16px 25px;
+          background:#292929;
+          color:white;
+          box-sizing:border-box;">
+
+          <div style="
+            min-height:52px;
+            border-radius:28px;
+            background:#3b3b3b;
             display:flex;
-            flex-direction:column;
-            font-family:Arial,sans-serif;
-            box-sizing:border-box;
-            padding-bottom:90px;">
+            align-items:center;
+            gap:12px;
+            padding:0 16px;
+            font-size:15px;">
+            <span>🔒</span>
+            <span style="flex:1">SIMULATED · demo.local</span>
+            <span>↻</span>
+          </div>
 
-            <div style="text-align:center;padding:45px 16px 20px">
-                <h2 style="font-size:26px;color:#202124">
-                    Login Demo
-                </h2>
-                <p style="font-size:18px;color:#5f6368">
-                    PoC by FARISSAL B
-                </p>
-
-                <input id="email"
-                    type="text"
-                    placeholder="Email atau nomor telepon"
-                    autocomplete="off"
-                    style="width:90%;padding:14px;
-                    margin:20px 0;border:2px solid #1a73e8;
-                    border-radius:5px;box-sizing:border-box;
-                    font-size:16px">
-
-                <input id="password"
-                    type="password"
-                    placeholder="Sandi dummy"
-                    autocomplete="off"
-                    style="width:90%;padding:14px;
-                    margin:10px 0;border:1px solid #777;
-                    border-radius:5px;box-sizing:border-box;
-                    font-size:16px">
-
-                <button type="button"
-                    onclick="document.getElementById('email').focus()"
-                    style="width:90%;padding:13px;
-                    background:#1a73e8;color:white;border:0;
-                    border-radius:5px;font-size:16px">
-                    Lanjutkan Demo
-                </button>
-            </div>
-
-            <div style="
-                position:fixed;
-                bottom:0;
-                left:0;
-                width:100%;
-                background:#292929;
-                padding:12px 16px 24px;
-                box-sizing:border-box;
-                color:white;">
-
-                <div style="
-                    background:#3b3b3b;
-                    border-radius:30px;
-                    min-height:52px;
-                    display:flex;
-                    align-items:center;
-                    padding:0 16px;
-                    gap:12px;
-                    box-sizing:border-box;
-                    font-size:15px;">
-
-                    <span>🔒</span>
-                    <span style="flex:1">
-                        SIMULATED · demo.local
-                    </span>
-                    <span>↻</span>
-                </div>
-
-                <div style="
-                    display:flex;
-                    justify-content:space-around;
-                    align-items:center;
-                    padding-top:18px;
-                    font-size:24px;">
-                    <span>‹</span>
-                    <span>›</span>
-                    <span>＋</span>
-                    <span>▢</span>
-                    <span>☰</span>
-                </div>
-            </div>
+          <div style="
+            display:flex;
+            justify-content:space-around;
+            padding-top:18px;
+            font-size:24px;">
+            <span>‹</span>
+            <span>›</span>
+            <span>＋</span>
+            <span>▢</span>
+            <span>☰</span>
+          </div>
         </div>
+      </div>
     `;
 
-    try {
-        await div.requestFullscreen();
-    } catch (e) {}
+    document.getElementById('start').style.display = 'none';
 
-    const email = document.getElementById('email');
-    email.focus();
+    if (div.requestFullscreen) {
+        div.requestFullscreen().catch(() => {});
+    }
+
+    document.getElementById('email').focus();
 }
 </script>
 
 <div id="pointerLockElement" style="background:white"></div>
+<div id="fullscreenElement" style="background:white"></div>
+
+</body>
 </html>
